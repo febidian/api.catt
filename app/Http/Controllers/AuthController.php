@@ -21,7 +21,8 @@ class AuthController extends Controller
             $id = $this->idrandom();
             User::create([
                 'name' => $request->name,
-                'notes_user_id' => $id,
+                'note_user_id' => $id,
+                'category_user_id' => $id,
                 'email' => $request->email,
                 'password' => bcrypt($request->password)
             ]);
@@ -94,7 +95,8 @@ class AuthController extends Controller
                 ['google_id' => $socialiteUser->id],
                 [
                     'name' => $socialiteUser->name,
-                    'notes_user_id' => $id,
+                    'note_user_id' => $id,
+                    'category_user_id' => $id,
                     'email' => $socialiteUser->email,
                     'email_verified_at' => now(),
                 ],
@@ -139,6 +141,8 @@ class AuthController extends Controller
                 [
                     'name' => $socialiteUser->name,
                     'email' => $socialiteUser->email,
+                    'note_user_id' => $id,
+                    'category_user_id' => $id,
                     'email_verified_at' => now(),
                     'notes_user_id' => $this->idrandom(),
                 ],
