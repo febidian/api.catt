@@ -34,7 +34,6 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'Failed to create an account.',
                 'status' => 'failed',
-                'th' => $th,
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -60,18 +59,12 @@ class AuthController extends Controller
                     ],
                 ], Response::HTTP_UNAUTHORIZED);
             }
-
-            $minutes = auth()->factory()->getTTL() * 60;
-            $customClaims = ['sub' => $user->id, 'role' => $user->role];
-            $payload = JWTFactory::customClaims($customClaims)->make();
-            $token = JWTAuth::encode($payload);
-            $cookie = cookie('jwt_token', $token, $minutes, null, null, true, true);
-
             return response()->json([
                 'message' => 'You have successfully logged in.',
                 'user' => new UserResource($user),
                 'status' => 'success',
-            ], Response::HTTP_OK)->withCookie($cookie);
+                'token' => $token,
+            ], Response::HTTP_OK);
         } catch (\Throwable $th) {
             return response()->json([
                 'errors' => [
@@ -107,8 +100,8 @@ class AuthController extends Controller
                 ],
             );
 
-            $minutes = auth()->factory()->getTTL() * 60;
-            $customClaims = ['sub' => $user->id, 'role' => $user->role];
+            $minutes = 480;
+            $customClaims = ['sub' => $user->id];
             $payload = JWTFactory::customClaims($customClaims)->make();
             $token = JWTAuth::encode($payload);
             $cookie = cookie('jwt_token', $token, $minutes, null, null, true, true);
@@ -157,8 +150,8 @@ class AuthController extends Controller
                     'status' => 'failed',
                 ], Response::HTTP_UNAUTHORIZED);
             } else {
-                $minutes = auth()->factory()->getTTL() * 60;
-                $customClaims = ['sub' => $user->id, 'role' => $user->role];
+                $minutes = 480;
+                $customClaims = ['sub' => $user->id];
                 $payload = JWTFactory::customClaims($customClaims)->make();
                 $token = JWTAuth::encode($payload);
                 $cookie = cookie('jwt_token', $token, $minutes, null, null, true, true);
