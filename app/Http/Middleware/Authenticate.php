@@ -21,11 +21,7 @@ class Authenticate extends Middleware
 
     public function handle($request, Closure $next, ...$guards)
     {
-
         try {
-
-
-            // Cek apakah ada token JWT dalam cookie
             if (!$request->hasCookie('jwt_token')) {
                 return response()->json('Token expired', 401);
             }
