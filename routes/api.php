@@ -14,10 +14,11 @@ Route::controller(AuthController::class)->prefix('auth')->group(function () {
     Route::get('login/facebook/callback', 'handleFacebookCallback')->name('auth.handleFacebookCallback');
 });
 
-Route::controller(NoteController::class)->prefix('note')->group(function () {
-    Route::get('', 'index')->name('notes.index');
-    Route::post('', 'create')->name('notes.create');
-    Route::get('{note}', 'show')->name('notes.show');
-    Route::put('{note}', 'update')->name('notes.update');
-    Route::delete('{note}', 'destroy')->name('notes.destroy');
+Route::controller(NoteController::class)->prefix('note')->middleware('auth:api')->group(function () {
+    Route::get('', 'index')->name('note.index');
+    Route::post('', 'create')->middleware("throttle:note")->name('note.create');
+    Route::get('{note}', 'show')->name('note.show');
+    Route::put('{note}', 'update')->name('note.update');
+    Route::delete('{note}', 'destroy')->name('note.destroy');
+    Route::post('upload/image', 'uploadImage')->name('note.uploadImage');
 });

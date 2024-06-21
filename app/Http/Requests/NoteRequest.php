@@ -25,9 +25,16 @@ class NoteRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => ['required', 'string', 'max:255'],
-            'category' => ['required', 'string', 'max:100'],
-            'note' => ['required'],
+            'title' => ['bail', 'required', 'string', 'max:255'],
+            'category' => ['bail', 'required', 'string', 'max:100'],
+            'note' => ['bail', 'required', 'json'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'note.json' => 'The note field is required.',
         ];
     }
     protected function failedValidation(Validator $validator)

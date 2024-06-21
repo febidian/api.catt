@@ -55,5 +55,10 @@ class RouteServiceProvider extends ServiceProvider
                 return response()->json(['message' => 'Too many register attempts. Please try again later.'], 429);
             });
         });
+        RateLimiter::for('note', function (Request $request) {
+            return Limit::perMinute(10)->by($request->ip())->response(function (Request $request, array $headers) {
+                return response()->json(['message' => 'Too many requests. Please try again later.'], 429);
+            });
+        });
     }
 }
