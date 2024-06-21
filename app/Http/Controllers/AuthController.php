@@ -179,7 +179,7 @@ class AuthController extends Controller
         $jam = now()->format('H');
         $bulan = now()->format('m');
         $tahun = now()->format('Y');
-        $randomAngka = mt_rand(1, 99999);
+        $randomAngka = mt_rand(1, 999);
         $customId = $tanggal . $bulan . $tahun . $jam . $randomAngka;
 
         return $customId;
