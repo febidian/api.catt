@@ -114,7 +114,7 @@ class AuthController extends Controller
         } catch (QueryException $th) {
             return response()->json([
                 'status' => "failed",
-                'th' => $th
+                'message' => "Something went wrong, please try again.",
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -146,27 +146,18 @@ class AuthController extends Controller
                 ],
             );
 
-            if ($user->status === 0) {
-                return response()->json([
-                    'message' => 'Akun Anda dinonaktifkan.',
-                    'status' => 'failed',
-                ], Response::HTTP_UNAUTHORIZED);
-            } else {
-                $minutes = 480;
-                $customClaims = ['sub' => $user->id];
-                $payload = JWTFactory::customClaims($customClaims)->make();
-                $token = JWTAuth::encode($payload);
-                $cookie = cookie('jwt_token', $token, $minutes, null, null, true, true);
+            $token = Auth::login($user);
 
-                return response()->json([
-                    'message' => 'Anda Berhasil Login.',
-                    'user' => new UserResource($user),
-                    'status' => 'success',
-                ], Response::HTTP_OK)->withCookie($cookie);
-            }
+            return response()->json([
+                'message' => 'You have successfully logged in.',
+                'user' => new UserResource($user),
+                'status' => 'success',
+                'token' => $token
+            ], Response::HTTP_OK);
         } catch (\Throwable $th) {
             return response()->json([
                 'status' => "failed",
+                'message' => "Something went wrong, please try again.",
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
