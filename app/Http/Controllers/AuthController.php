@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Facades\JWTFactory;
@@ -102,17 +103,14 @@ class AuthController extends Controller
                 ],
             );
 
-            $minutes = 480;
-            $customClaims = ['sub' => $user->id];
-            $payload = JWTFactory::customClaims($customClaims)->make();
-            $token = JWTAuth::encode($payload);
-            $cookie = cookie('jwt_token', $token, $minutes, null, null, true, true);
+            $token = Auth::login($user);
 
             return response()->json([
                 'message' => 'You have successfully logged in.',
                 'user' => new UserResource($user),
                 'status' => 'success',
-            ], Response::HTTP_OK)->withCookie($cookie);
+                'token' => $token
+            ], Response::HTTP_OK);
         } catch (QueryException $th) {
             return response()->json([
                 'status' => "failed",
