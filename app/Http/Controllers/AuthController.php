@@ -185,6 +185,27 @@ class AuthController extends Controller
         }
     }
 
+    public function logout(Request $request)
+    {
+        $rawToken = $request->cookie('jwt_token');
+
+        if ($rawToken) {
+            $request->headers->set('Authorization', 'Bearer' . $rawToken);
+        }
+        try {
+            Auth::logout();
+            return response()->json([
+                'message' => 'Successfully logged out',
+                'status' => 'success',
+            ], Response::HTTP_OK);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'message' => 'Failed to logout',
+                'status' => 'failed',
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
     public function idrandom()
     {
         $tanggal = now()->format('dmY');
