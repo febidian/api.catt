@@ -11,8 +11,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
-use Tymon\JWTAuth\Facades\JWTAuth;
-use Tymon\JWTAuth\Facades\JWTFactory;
 
 class AuthController extends Controller
 {
@@ -159,6 +157,31 @@ class AuthController extends Controller
                 'status' => "failed",
                 'message' => "Something went wrong, please try again.",
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public function refresh(Request $request)
+    {
+        config([
+            'jwt.blacklist_enabled' => false
+        ]);
+
+        $rawToken = $request->cookie('jwt_token');
+
+        if ($rawToken) {
+            $request->headers->set('Authorization', 'Bearer' . $rawToken);
+        }
+
+        try {
+            $token = Auth::refresh();
+
+            return response()->json([
+                'message' => 'Token successfully updated.',
+                'status' => 'success',
+                'token' => $token
+            ], Response::HTTP_OK);
+        } catch (\Throwable $e) {
+            return response()->json(['error' => 'Token update failed'], Response::HTTP_UNAUTHORIZED);
         }
     }
 

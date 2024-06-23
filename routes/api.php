@@ -12,6 +12,7 @@ Route::controller(AuthController::class)->prefix('auth')->group(function () {
     Route::get('login/google/callback', 'handleGoogleCallback')->name('auth.handleGoogleCallback');
     Route::get('login/facebook', 'redirectToFacebook')->name('auth.redirectToFacebook');
     Route::get('login/facebook/callback', 'handleFacebookCallback')->name('auth.handleFacebookCallback');
+    Route::post('refresh', 'refresh')->name('auth.refresh');
 });
 
 Route::controller(NoteController::class)->prefix('note')->middleware('auth:api')->group(function () {
