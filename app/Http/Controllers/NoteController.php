@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\NoteRequest;
 use App\Http\Resources\CatagoriesResource;
+use App\Http\Resources\NotesResource;
 use App\Models\Catagories;
 use App\Models\Note;
 use Illuminate\Database\QueryException;
@@ -15,6 +16,44 @@ use Illuminate\Support\Facades\Storage;
 
 class NoteController extends Controller
 {
+    public function notes($category = null)
+    {
+        try {
+            $user = Auth::user();
+            if ($category === null) {
+                $notes = Note::where('user_id', $user->note_user_id)
+                    ->with('category')
+                    ->with('stars')
+                    ->whereHas('stars', function ($q) {
+                        $q->where('star', false);
+                    })
+                    ->orderBy('updated_at', 'desc')
+                    ->paginate(10);
+            } else {
+                $notes = Note::where('user_id', $user->note_user_id)
+                    ->whereHas('category', function ($q) use ($category) {
+                        $q->where('category_name', $category);
+                    })
+                    ->with('category')
+                    ->with('stars')
+                    ->whereHas('stars', function ($q) {
+                        $q->where('star', false);
+                    })
+                    ->orderBy('updated_at', 'desc')
+                    ->paginate(10);
+            }
+            return response()->json([
+                'status' => 'success',
+                "notes" => NotesResource::collection($notes)->response()->getData(),
+            ], Response::HTTP_OK);
+        } catch (QueryException $th) {
+            return response()->json([
+                'status' => 'failed',
+                'th' => $th
+            ], Response::HTTP_BAD_REQUEST);
+        }
+    }
+
     public function create(NoteRequest $request)
     {
         try {
@@ -37,6 +76,9 @@ class NoteController extends Controller
                     'user_id' => $user->category_user_id,
                     'category_name' => $request->category,
                 ]);
+                $note->stars()->create([
+                    "star" => false
+                ]);
             } else {
                 $note = Note::create([
                     'user_id' => $user->note_user_id,
@@ -45,6 +87,9 @@ class NoteController extends Controller
                     'title' => $request->title,
                     'note_content' => $request->note,
                     'star_note_id' => $this->idrandom(),
+                ]);
+                $note->stars()->create([
+                    "star" => false
                 ]);
             }
 

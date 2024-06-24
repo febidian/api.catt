@@ -18,6 +18,10 @@ class Note extends Model
         'star_note_id',
     ];
 
+    public function stars()
+    {
+        return $this->hasOne(Star::class, "star_id", "star_note_id");
+    }
 
     public function category()
     {
