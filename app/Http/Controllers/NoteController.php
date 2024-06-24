@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\NoteRequest;
+use App\Http\Resources\CatagoriesResource;
 use App\Models\Catagories;
 use App\Models\Note;
 use Illuminate\Database\QueryException;
@@ -71,6 +72,17 @@ class NoteController extends Controller
             return response()->json(['success' => 1, 'file' => ['url' => $url]], Response::HTTP_OK);
         }
         return response()->json(['success' => 0, 'message' => 'No image uploaded'], Response::HTTP_BAD_REQUEST);
+    }
+
+    public function category()
+    {
+        $user = Auth::user();
+        $category = Catagories::where('user_id', $user->note_user_id)->get();
+
+        return response()->json([
+            'status' => 'success',
+            "category" => CatagoriesResource::collection($category),
+        ], Response::HTTP_OK);
     }
 
     public function idrandom()
