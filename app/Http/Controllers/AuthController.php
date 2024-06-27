@@ -165,7 +165,6 @@ class AuthController extends Controller
         config([
             'jwt.blacklist_enabled' => false
         ]);
-
         $rawToken = $request->cookie('jwt_token');
 
         if ($rawToken) {
@@ -174,11 +173,10 @@ class AuthController extends Controller
 
         try {
             $token = Auth::refresh();
-
             return response()->json([
                 'message' => 'Token successfully updated.',
                 'status' => 'success',
-                'token' => $token
+                'token' => $token,
             ], Response::HTTP_OK);
         } catch (\Throwable $e) {
             return response()->json(['error' => 'Token update failed'], Response::HTTP_UNAUTHORIZED);
