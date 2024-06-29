@@ -22,7 +22,7 @@ class StarController extends Controller
                     $q->where('star', true);
                 })
                 ->orderBy('updated_at', 'desc')
-                ->paginate(15);
+                ->paginate(16);
 
             return response()->json([
                 'status' => 'success',

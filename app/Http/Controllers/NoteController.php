@@ -28,7 +28,7 @@ class NoteController extends Controller
                         $q->where('star', false);
                     })
                     ->orderBy('updated_at', 'desc')
-                    ->paginate(15);
+                    ->paginate(16);
             } else {
                 $notes = Note::where('user_id', $user->note_user_id)
                     ->whereHas('category', function ($q) use ($category) {
@@ -40,7 +40,7 @@ class NoteController extends Controller
                         $q->where('star', false);
                     })
                     ->orderBy('updated_at', 'desc')
-                    ->paginate(15);
+                    ->paginate(16);
             }
             return response()->json([
                 'status' => 'success',
