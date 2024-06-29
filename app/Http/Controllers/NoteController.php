@@ -49,7 +49,6 @@ class NoteController extends Controller
         } catch (QueryException $th) {
             return response()->json([
                 'status' => 'failed',
-                'th' => $th
             ], Response::HTTP_BAD_REQUEST);
         }
     }
@@ -103,7 +102,6 @@ class NoteController extends Controller
             return response()->json([
                 'status' => 'failed',
                 'message' => "Note failed to be saved.",
-                'th' => $th
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -132,12 +130,7 @@ class NoteController extends Controller
 
     public function idrandom()
     {
-        $tanggal = now()->format('dmY');
-        $jam = now()->format('H');
-        $bulan = now()->format('m');
-        $tahun = now()->format('Y');
-        $randomAngka = mt_rand(1, 999);
-        $customId = $tanggal . $bulan . $tahun . $jam . $randomAngka;
+        $customId = hexdec(uniqid());
 
         return $customId;
     }

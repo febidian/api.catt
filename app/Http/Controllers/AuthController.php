@@ -206,12 +206,8 @@ class AuthController extends Controller
 
     public function idrandom()
     {
-        $tanggal = now()->format('dmY');
-        $jam = now()->format('H');
-        $bulan = now()->format('m');
-        $tahun = now()->format('Y');
-        $randomAngka = mt_rand(1, 999);
-        $customId = $tanggal . $bulan . $tahun . $jam . $randomAngka;
+
+        $customId = hexdec(uniqid());
 
         return $customId;
     }

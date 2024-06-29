@@ -20,7 +20,7 @@ class NotesResource extends JsonResource
             'title' => $this->title,
             'note_content' => $this->note_content,
             'category' => new CategoryResource($this->category),
-            'star' => $this->stars->star,
+            'star' => new StarResource($this->stars),
             'date' => $this->updated_at,
         ];
     }
