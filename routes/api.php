@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\NoteController;
+use App\Http\Controllers\StarController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -25,3 +26,8 @@ Route::controller(NoteController::class)->prefix('note')->middleware('auth:api')
     Route::post('upload/image', 'uploadImage')->name('note.uploadImage');
     Route::get('/show/category', 'category')->name('note.category');
 });
+
+Route::controller(StarController::class)->prefix('star')
+    ->middleware('auth:api')->group(function () {
+        Route::patch('{id}', 'update')->name('star.update');
+    });
