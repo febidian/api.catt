@@ -2,12 +2,38 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\NotesResource;
+use App\Models\Note;
 use App\Models\Star;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 
 class StarController extends Controller
 {
+    public function stars()
+    {
+        try {
+            $user = Auth::user();
+            $notes = Note::where('user_id', $user->note_user_id)
+                ->with('category')
+                ->with('stars')
+                ->whereHas('stars', function ($q) {
+                    $q->where('star', true);
+                })
+                ->orderBy('updated_at', 'desc')
+                ->paginate(15);
+
+            return response()->json([
+                'status' => 'success',
+                "notes" => NotesResource::collection($notes)->response()->getData(),
+            ], Response::HTTP_OK);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => 'failed',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+    }
     public function update($id)
     {
         try {

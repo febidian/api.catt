@@ -29,5 +29,6 @@ Route::controller(NoteController::class)->prefix('note')->middleware('auth:api')
 
 Route::controller(StarController::class)->prefix('star')
     ->middleware('auth:api')->group(function () {
+        Route::get('', 'stars')->name('star.index');
         Route::patch('{id}', 'update')->name('star.update');
     });
