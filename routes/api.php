@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\NoteController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StarController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -32,3 +33,5 @@ Route::controller(StarController::class)->prefix('star')
         Route::get('', 'stars')->name('star.index');
         Route::patch('{id}', 'update')->name('star.update');
     });
+
+Route::get('search/note/{title}', SearchController::class)->middleware('auth:api')->name('search.index');
