@@ -2,17 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\NoteRequest;
-use App\Http\Resources\CatagoriesResource;
-use App\Http\Resources\NotesResource;
-use App\Models\Catagories;
 use App\Models\Note;
-use Illuminate\Database\QueryException;
+use App\Models\Catagories;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\NoteRequest;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Intervention\Image\ImageManager;
+use App\Http\Resources\NotesResource;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Resources\NoteShowResource;
+use Intervention\Image\Drivers\Gd\Driver;
+use App\Http\Resources\CatagoriesResource;
 
 class NoteController extends Controller
 {
@@ -106,15 +109,41 @@ class NoteController extends Controller
         }
     }
 
+    public function show($id)
+    {
+        try {
+            $user = Auth::user();
+            $note = Note::where('user_id', $user->note_user_id)->where('note_id', $id)
+                ->with('category')
+                ->with('stars')->first();
+
+            return response()->json([
+                'status' => 'success',
+                "note" => new NoteShowResource($note),
+            ], Response::HTTP_OK);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => 'failed',
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
     public function uploadImage(Request $request)
     {
-        if ($request->hasFile('file')) {
-            $path = $request->file('file')->store('uploads');
-            $url = Storage::url($path);
+        try {
+            if ($request->hasFile('file')) {
+                $path = $request->file('file')->store('uploads');
+                $manager = new ImageManager(Driver::class);
+                $resize = $manager->read($request->file('file'));
+                $resize->scale(height: 384);
+                $resize->save(public_path("storage/{$path}"));
+                $url = Storage::url($path);
 
-            return response()->json(['success' => 1, 'file' => ['url' => $url]], Response::HTTP_OK);
+                return response()->json(['success' => 1, 'file' => ['url' => $url]], Response::HTTP_OK);
+            }
+        } catch (QueryException $th) {
+            return response()->json(['success' => 0, 'message' => 'No image uploaded'], Response::HTTP_BAD_REQUEST);
         }
-        return response()->json(['success' => 0, 'message' => 'No image uploaded'], Response::HTTP_BAD_REQUEST);
     }
 
     public function category()

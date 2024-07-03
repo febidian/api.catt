@@ -21,11 +21,11 @@ Route::controller(AuthController::class)->prefix('auth')->group(function () {
 Route::controller(NoteController::class)->prefix('note')->middleware('auth:api')->group(function () {
     Route::get('{category?}', 'notes')->name('note.notes');
     Route::post('', 'create')->middleware("throttle:note")->name('note.create');
-    // Route::get('{note}', 'show')->name('note.show');
+    Route::get('show/{id}', 'show')->name('note.show');
     // Route::put('{note}', 'update')->name('note.update');
     // Route::delete('{note}', 'destroy')->name('note.destroy');
     Route::post('upload/image', 'uploadImage')->name('note.uploadImage');
-    Route::get('/show/category', 'category')->name('note.category');
+    Route::get('/list/category', 'category')->name('note.category');
 });
 
 Route::controller(StarController::class)->prefix('star')
@@ -34,4 +34,5 @@ Route::controller(StarController::class)->prefix('star')
         Route::patch('{id}', 'update')->name('star.update');
     });
 
-Route::get('search/note/{title}', SearchController::class)->middleware('auth:api')->name('search.index');
+Route::get('search/note/{title}', SearchController::class)
+    ->middleware('auth:api')->name('search.index');
