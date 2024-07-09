@@ -65,19 +65,21 @@ class NoteController extends Controller
             $category = Catagories::where('user_id', $user->note_user_id)->where('category_name', $request->category)->first();
 
             if (!$category) {
-                $note = Note::create([
+                $category = Catagories::create([
+                    'user_id' => $user->category_user_id,
+                    'category_name' => $request->category,
+                    'category_id' => $this->idrandom(),
+                ]);
+
+                $note = $category->note()->create([
                     'user_id' => $user->note_user_id,
                     'note_id' => $this->idrandom(),
-                    'category_id' => $this->idrandom(),
+                    'category_id' => $category->category_id,
                     'title' => $request->title,
                     'note_content' => $request->note,
                     'star_note_id' => $this->idrandom(),
                 ]);
 
-                $note->category()->create([
-                    'user_id' => $user->category_user_id,
-                    'category_name' => $request->category,
-                ]);
                 $note->stars()->create([
                     "star" => false
                 ]);
@@ -105,6 +107,7 @@ class NoteController extends Controller
             return response()->json([
                 'status' => 'failed',
                 'message' => "Note failed to be saved.",
+                'th' => $th
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }

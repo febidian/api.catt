@@ -17,7 +17,7 @@ class Catagories extends Model
         'user_id',
     ];
 
-    public function category()
+    public function note()
     {
         return $this->belongsTo(Note::class, "category_id", "category_id");
     }

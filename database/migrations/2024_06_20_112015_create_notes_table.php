@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users', 'note_user_id')->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('note_id')->unique()->index();
             $table->uuid('duplicate_id')->nullable();
-            $table->foreignId('category_id')->index();
+            $table->foreignId('category_id')->constrained('categories', 'category_id')->onUpdate('cascade')->onDelete('cascade');
             $table->string('title');
             $table->text('note_content');
             $table->foreignId('star_note_id')->unique()->index();
