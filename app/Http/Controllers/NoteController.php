@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\NoteShowResource;
 use Intervention\Image\Drivers\Gd\Driver;
 use App\Http\Resources\CatagoriesResource;
+use App\Http\Resources\DeleteNoteShowResource;
 
 class NoteController extends Controller
 {
@@ -165,5 +166,117 @@ class NoteController extends Controller
         $customId = hexdec(uniqid());
 
         return $customId;
+    }
+
+    public function showdelete()
+    {
+        try {
+            $notes = Note::where('user_id', Auth::user()->note_user_id)
+                ->with('category')
+                ->with('stars')
+                ->orderBy('deleted_at', 'desc')
+                ->onlyTrashed()
+                ->paginate(16);
+
+            return response()->json([
+                'notes' => DeleteNoteShowResource::collection($notes)->response()->getData(),
+                'status' => 'success'
+            ], Response::HTTP_OK);
+        } catch (QueryException $q) {
+            return response()->json([
+                'status' => 'failed'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+    }
+
+    public function softdelete($note_id)
+    {
+        $user = Auth::user();
+        try {
+            Note::where('user_id', $user->note_user_id)
+                ->where('note_id', $note_id)
+                ->whereHas('stars', function ($q) {
+                    $q->where('star', false);
+                })
+                ->first()->delete();
+
+            return response()->json([
+                'message' => 'The note was temporarily deleted',
+                'status' => 'success'
+            ], Response::HTTP_OK);
+        } catch (\Throwable $q) {
+            return response()->json([
+                'message' => 'The note was not temporarily deleted',
+                'status' => 'failed'
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public function forcedestroy($note_id)
+    {
+        try {
+            Note::where('user_id', Auth::user()->note_user_id)->withTrashed('note_id', $note_id)->first()->forceDelete();
+            return response()->json([
+                'message' => 'The note was permanently deleted',
+                'status' => 'success'
+            ], Response::HTTP_OK);
+        } catch (QueryException $q) {
+            return response()->json([
+                'message' => 'The note was not permanently deleted',
+                'status' => 'failed'
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public function forcedestroyall()
+    {
+        try {
+            Note::where('user_id', Auth::user()->note_user_id)->onlyTrashed()->forceDelete();
+            return response()->json([
+                'message' => '"All notes were permanently deleted',
+                'status' => 'success'
+            ], Response::HTTP_OK);
+        } catch (QueryException $q) {
+            return response()->json([
+                'message' => 'All notes were not permanently deleted',
+                'status' => 'failed'
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public function restore($note_id)
+    {
+        try {
+            Note::withTrashed()
+                ->where('user_id', Auth::user()->note_user_id)
+                ->where('note_id', $note_id)->restore();
+
+            return response()->json([
+                'message' => 'Notes have been restored',
+                'status' => 'success'
+            ], Response::HTTP_OK);
+        } catch (QueryException $q) {
+            return response()->json([
+                'message' => 'Notes failed to restored',
+                'status' => 'failed'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+    }
+
+    public function restoreall()
+    {
+        try {
+            Note::where('user_id', Auth::user()->note_user_id)->onlyTrashed()->restore();
+
+            return response()->json([
+                'message' => 'All notes have been restored',
+                'status' => 'success'
+            ], Response::HTTP_OK);
+        } catch (QueryException $q) {
+            return response()->json([
+                'message' => 'All notes failed to restore',
+                'status' => 'failed'
+            ], Response::HTTP_BAD_REQUEST);
+        }
     }
 }

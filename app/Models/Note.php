@@ -17,7 +17,10 @@ class Note extends Model
         'title',
         'note_content',
         'star_note_id',
+        'deleted_at'
     ];
+
+    protected $dates = ['deleted_at'];
 
     public function stars()
     {
