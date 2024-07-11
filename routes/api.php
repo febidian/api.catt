@@ -30,7 +30,8 @@ Route::controller(NoteController::class)->prefix('note')->middleware('auth:api')
     Route::post('restore/{note_id}', 'restore')->name('note.restore');
     Route::get('soft/delete', 'showdelete')->name('note.showdelete');
     Route::post('upload/image', 'uploadImage')->name('note.uploadImage');
-    Route::get('/list/category', 'category')->name('note.category');
+    Route::get('list/category', 'category')->name('note.category');
+    Route::get('share/{node_id}', 'share')->name('note.share');
 });
 
 Route::controller(StarController::class)->prefix('star')

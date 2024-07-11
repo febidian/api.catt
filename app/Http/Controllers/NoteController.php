@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\Note;
+use App\Models\Share;
 use App\Models\Catagories;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Http\Requests\NoteRequest;
@@ -317,6 +320,44 @@ class NoteController extends Controller
                 'message' => 'All notes failed to restore',
                 'status' => 'failed'
             ], Response::HTTP_BAD_REQUEST);
+        }
+    }
+
+    public function share($note_id)
+    {
+        try {
+            $selectShare = Share::where("user_id", Auth::user()->note_user_id)
+                ->where('note_id', $note_id)->first();
+
+            if ($selectShare) {
+                if (Carbon::now()->gt($selectShare->expired_at)) {
+                    $selectShare->delete();
+                    $share =  Share::create([
+                        'user_id' => Auth::user()->note_user_id,
+                        'note_id' => $note_id,
+                        'url_generate' => Str::uuid(),
+                        'expired_at' => now()->addMinutes(30),
+                    ]);
+                } else {
+                    $share = Share::where('note_id', $note_id)->first();
+                }
+            } else {
+                $share = Share::create([
+                    'user_id' => Auth::user()->note_user_id,
+                    'note_id' => $note_id,
+                    'url_generate' => Str::uuid(),
+                    'expired_at' => now()->addMinutes(30),
+                ]);
+            }
+            return response()->json([
+                'url' => $share->url_generate,
+                'status' => 'success'
+            ], Response::HTTP_CREATED);
+        } catch (QueryException $th) {
+            return response()->json([
+                'status' => 'failed',
+                'th' => $th
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }
