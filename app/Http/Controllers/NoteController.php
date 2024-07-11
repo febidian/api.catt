@@ -132,6 +132,46 @@ class NoteController extends Controller
         }
     }
 
+    public function update(NoteRequest $request, $note_id)
+
+    {
+        try {
+            $new = $request->new;
+            $user = Auth::user();
+            if ($new == "true") {
+                $category = Catagories::create([
+                    'user_id' => $user->category_user_id,
+                    'category_name' => $request->category,
+                    'category_id' => $this->idrandom(),
+                ]);
+                Note::where('user_id', $user->note_user_id)
+                    ->where('note_id', $note_id)->update([
+                        'title' => $request->title,
+                        'category_id' => $category->category_id,
+                        'note_content' => $request->note,
+                    ]);
+            } else {
+                $category = Catagories::where('user_id', $user->note_user_id)->where('category_name', $request->category)->first();
+                Note::where('user_id', $user->note_user_id)
+                    ->where('note_id', $note_id)->update([
+                        'title' => $request->title,
+                        'category_id' => $category->category_id,
+                        'note_content' => $request->note,
+                    ]);
+            }
+
+            return response()->json([
+                'message' => 'Note successfully updated.',
+                'status' => 'success',
+            ], Response::HTTP_OK);
+        } catch (QueryException $q) {
+            return response()->json([
+                'message' => 'Note update failed.',
+                'status' => 'failed',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+    }
+
     public function uploadImage(Request $request)
     {
         try {

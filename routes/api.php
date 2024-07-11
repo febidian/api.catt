@@ -22,7 +22,7 @@ Route::controller(NoteController::class)->prefix('note')->middleware('auth:api')
     Route::get('{category?}', 'notes')->name('note.notes');
     Route::post('', 'create')->middleware("throttle:note")->name('note.create');
     Route::get('show/{id}', 'show')->name('note.show');
-    // Route::put('{note}', 'update')->name('note.update');
+    Route::put('{note_id}', 'update')->name('note.update');
     Route::delete('softdelete/{note_id}', 'softdelete')->name('note.softdelete');
     Route::delete('forcedelete/{note_id}', 'forcedestroy')->name('note.forcedestroy');
     Route::delete('forcedelete/all/permanent', 'forcedestroyall')->name('note.forcedestroyall');
