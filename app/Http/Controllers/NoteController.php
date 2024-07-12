@@ -21,6 +21,7 @@ use Intervention\Image\Drivers\Gd\Driver;
 use App\Http\Resources\CatagoriesResource;
 use App\Http\Resources\DeleteNoteShowResource;
 use App\Http\Resources\ShareNoteShowResource;
+use App\Models\Star;
 
 class NoteController extends Controller
 {
@@ -82,6 +83,7 @@ class NoteController extends Controller
                     'category_id' => $category->category_id,
                     'title' => $request->title,
                     'note_content' => $request->note,
+                    'duplicate_id' => $this->idrandom(),
                     'star_note_id' => $this->idrandom(),
                 ]);
 
@@ -94,6 +96,7 @@ class NoteController extends Controller
                     'note_id' => $this->idrandom(),
                     'category_id' => $category->category_id,
                     'title' => $request->title,
+                    'duplicate_id' => $this->idrandom(),
                     'note_content' => $request->note,
                     'star_note_id' => $this->idrandom(),
                 ]);
@@ -366,29 +369,122 @@ class NoteController extends Controller
     {
         try {
             $share = Share::where('url_generate', $share_id)->first();
+            $auth = Auth::check();
 
             if ($share) {
                 if (Carbon::now()->gt($share->expired_at)) {
                     $share->delete();
                     return response()->json([
-                        'message' => 'The link has expired.',
+                        'message' => 'The link has expired',
                     ], 404);
                 } else {
                     $note = Note::where('note_id', $share->note_id)->first();
                 }
             } else {
                 return response()->json([
-                    'message' => 'The link has expired.',
+                    'message' => 'The link has expired',
                 ], 404);
             }
 
             return response()->json([
+                'auth' => $auth,
                 'note' => new ShareNoteShowResource($note),
                 'status' => 'success'
             ], Response::HTTP_OK);
         } catch (QueryException $th) {
             return response()->json([
                 'status' => 'failed',
+            ], Response::HTTP_NOT_FOUND);
+        }
+    }
+
+    public function duplicate($share_id)
+    {
+        $share = Share::where('url_generate', $share_id)->first();
+
+        try {
+            if ($share) {
+                if (Carbon::now()->gt($share->expired_at)) {
+                    $share->delete();
+                    return response()->json([
+                        'message' => 'Link has expired',
+                        'status' => 'failed'
+                    ], Response::HTTP_NOT_FOUND);
+                } else {
+                    $user = Auth::user();
+                    if ($share->note_id !== $user->note_user_id) {
+                        $cloneNote = Note::where('note_id', $share->note_id)->with('category')->first();
+                        if ($cloneNote) {
+                            $checkDuplicate = Note::where('user_id', $user->note_user_id)
+                                ->where('duplicate_id', $cloneNote->duplicate_id)->first();
+                            if ($checkDuplicate) {
+                                return response()->json([
+                                    'message' => 'You have already duplicated this note',
+                                    'status' => 'failed'
+                                ], Response::HTTP_BAD_REQUEST);
+                            } else {
+                                $category = Catagories::where('user_id', $user->note_user_id)->where('category_name', $cloneNote->category->category_name)->first();
+                                if (!$category) {
+                                    $category = Catagories::create([
+                                        'user_id' => $user->category_user_id,
+                                        'category_name' => $cloneNote->category->category_name,
+                                        'category_id' => $this->idrandom(),
+                                    ]);
+
+                                    $note = $category->note()->create([
+                                        'user_id' => $user->note_user_id,
+                                        'note_id' => $this->idrandom(),
+                                        'category_id' => $category->category_id,
+                                        'duplicate_id' => $cloneNote->duplicate_id,
+                                        'title' => $cloneNote->title,
+                                        'note_content' => $cloneNote->note_content,
+                                        'star_note_id' => $this->idrandom(),
+                                    ]);
+
+                                    $note->stars()->create([
+                                        "star" => false
+                                    ]);
+                                } else {
+                                    $note = Note::create([
+                                        'user_id' => $user->note_user_id,
+                                        'note_id' => $this->idrandom(),
+                                        'category_id' => $category->category_id,
+                                        'duplicate_id' => $cloneNote->duplicate_id,
+                                        'title' => $cloneNote->title,
+                                        'note_content' => $cloneNote->note_content,
+                                        'star_note_id' => $this->idrandom(),
+                                    ]);
+                                    $note->stars()->create([
+                                        "star" => false
+                                    ]);
+                                }
+                                return response()->json([
+                                    'message' => 'Note successfully duplicated.',
+                                    'status' => 'success'
+                                ], Response::HTTP_OK);
+                            }
+                        } else {
+                            return response()->json([
+                                'message' => 'Link has expired',
+                                'status' => 'failed'
+                            ], Response::HTTP_NOT_FOUND);
+                        }
+                    } else {
+                        return response()->json([
+                            'message' => 'Do not duplicate this note',
+                            'status' => 'failed',
+                        ], Response::HTTP_BAD_REQUEST);
+                    }
+                }
+            } else {
+                return response()->json([
+                    'message' => 'Link has expired',
+                    'status' => 'failed'
+                ], Response::HTTP_NOT_FOUND);
+            }
+        } catch (QueryException $th) {
+            return response()->json([
+                'status' => 'failed'
             ], Response::HTTP_NOT_FOUND);
         }
     }

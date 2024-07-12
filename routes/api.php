@@ -32,7 +32,8 @@ Route::controller(NoteController::class)->prefix('note')->middleware('auth:api')
     Route::post('upload/image', 'uploadImage')->name('note.uploadImage');
     Route::get('list/category', 'category')->name('note.category');
     Route::get('share/{node_id}', 'share')->name('note.share');
-    Route::get('share/show/{share_id}', 'showshare')->withoutMiddleware("auth:api")->name('note.showshare');
+    Route::get('share/show/{share_id}', 'showshare')->withoutMiddleware("auth:api")->middleware('share')->name('note.showshare');
+    Route::post('share/duplicate/{share_id}', 'duplicate')->name('note.duplicate');
 });
 
 Route::controller(StarController::class)->prefix('star')

@@ -16,6 +16,7 @@ class Note extends Model
         'category_id',
         'title',
         'note_content',
+        'duplicate_id',
         'star_note_id',
         'deleted_at'
     ];
