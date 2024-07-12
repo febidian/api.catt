@@ -20,6 +20,7 @@ use App\Http\Resources\NoteShowResource;
 use Intervention\Image\Drivers\Gd\Driver;
 use App\Http\Resources\CatagoriesResource;
 use App\Http\Resources\DeleteNoteShowResource;
+use App\Http\Resources\ShareNoteShowResource;
 
 class NoteController extends Controller
 {
@@ -358,6 +359,37 @@ class NoteController extends Controller
                 'status' => 'failed',
                 'th' => $th
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public function showshare($share_id)
+    {
+        try {
+            $share = Share::where('url_generate', $share_id)->first();
+
+            if ($share) {
+                if (Carbon::now()->gt($share->expired_at)) {
+                    $share->delete();
+                    return response()->json([
+                        'message' => 'The link has expired.',
+                    ], 404);
+                } else {
+                    $note = Note::where('note_id', $share->note_id)->first();
+                }
+            } else {
+                return response()->json([
+                    'message' => 'The link has expired.',
+                ], 404);
+            }
+
+            return response()->json([
+                'note' => new ShareNoteShowResource($note),
+                'status' => 'success'
+            ], Response::HTTP_OK);
+        } catch (QueryException $th) {
+            return response()->json([
+                'status' => 'failed',
+            ], Response::HTTP_NOT_FOUND);
         }
     }
 }
