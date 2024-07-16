@@ -18,6 +18,7 @@ class NoteShowResource extends JsonResource
             'note_id' => $this->note_id,
             'title' => $this->title,
             'note_content' => $this->note_content,
+            'private' => $this->private,
             'category' => new CategoryResource($this->category),
             'star' => new StarResource($this->stars),
             'date' => $this->updated_at,

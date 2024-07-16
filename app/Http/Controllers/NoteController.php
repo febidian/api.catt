@@ -31,6 +31,7 @@ class NoteController extends Controller
             $user = Auth::user();
             if ($category === null) {
                 $notes = Note::where('user_id', $user->note_user_id)
+                    ->where('private', 0)
                     ->with('category')
                     ->with('stars')
                     ->whereHas('stars', function ($q) {
@@ -43,6 +44,7 @@ class NoteController extends Controller
                     ->whereHas('category', function ($q) use ($category) {
                         $q->where('category_name', $category);
                     })
+                    ->where('private', 0)
                     ->with('category')
                     ->with('stars')
                     ->whereHas('stars', function ($q) {
@@ -108,14 +110,13 @@ class NoteController extends Controller
             DB::commit();
             return response()->json([
                 'status' => 'success',
-                'message' => "Note successfully saved.",
+                'message' => "Note successfully saved",
             ], Response::HTTP_CREATED);
         } catch (\Throwable $th) {
             DB::rollBack();
             return response()->json([
                 'status' => 'failed',
-                'message' => "Note failed to be saved.",
-                'th' => $th
+                'message' => "Note failed to be saved",
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -125,6 +126,7 @@ class NoteController extends Controller
         try {
             $user = Auth::user();
             $note = Note::where('user_id', $user->note_user_id)->where('note_id', $id)
+                ->where('private', 0)
                 ->with('category')
                 ->with('stars')->first();
 
@@ -360,7 +362,6 @@ class NoteController extends Controller
         } catch (QueryException $th) {
             return response()->json([
                 'status' => 'failed',
-                'th' => $th
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }

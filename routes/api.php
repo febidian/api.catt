@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\NoteController;
+use App\Http\Controllers\NotePrivateController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StarController;
 use Illuminate\Http\Request;
@@ -44,3 +45,11 @@ Route::controller(StarController::class)->prefix('star')
 
 Route::get('search/note/{title}', SearchController::class)
     ->middleware('auth:api')->name('search.index');
+
+Route::controller(NotePrivateController::class)->prefix('note/private')
+    ->middleware('auth:api')->group(function () {
+        Route::get('show/{note_id}/{password?}', 'show')->name('private.show');
+        Route::patch('{note_id}', 'update')->name('private.update');
+        Route::post('', 'private')->name('private.private');
+        Route::post('create/password', 'createPassword')->name('private.createPassword');
+    });

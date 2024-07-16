@@ -10,30 +10,40 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
     public function register(RegisterRequest $request)
     {
+        DB::beginTransaction();
         try {
             $id = $this->idrandom();
-            User::create([
+            $user = User::create([
                 'name' => $request->name,
                 'note_user_id' => $id,
                 'category_user_id' => $id,
+                'private_id' => $this->idrandom(),
                 'email' => $request->email,
                 'password' => bcrypt($request->password)
             ]);
 
+            $user->privateNote()->create([
+                'password' => null
+            ]);
+
+            DB::commit();
             return response()->json([
                 'message' => 'Successfully created an account.',
                 'status' => 'success'
             ], Response::HTTP_CREATED);
         } catch (\Throwable $th) {
+            DB::rollBack();
             return response()->json([
                 'message' => 'Failed to create an account.',
                 'status' => 'failed',
+                'error' => $th
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -96,10 +106,15 @@ class AuthController extends Controller
                     'name' => $socialiteUser->name,
                     'note_user_id' => $id,
                     'category_user_id' => $id,
+                    'private_id' => $this->idrandom(),
                     'email' => $socialiteUser->email,
                     'email_verified_at' => now(),
                 ],
             );
+
+            $user->privateNote()->create([
+                'password' => null
+            ]);
 
             $token = Auth::login($user);
 
@@ -137,12 +152,17 @@ class AuthController extends Controller
                 [
                     'name' => $socialiteUser->name,
                     'email' => $socialiteUser->email,
+                    'private_id' => $this->idrandom(),
                     'note_user_id' => $id,
                     'category_user_id' => $id,
                     'email_verified_at' => now(),
                     'notes_user_id' => $this->idrandom(),
                 ],
             );
+
+            $user->privateNote()->create([
+                'password' => null
+            ]);
 
             $token = Auth::login($user);
 

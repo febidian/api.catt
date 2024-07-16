@@ -16,6 +16,7 @@ class StarController extends Controller
         try {
             $user = Auth::user();
             $notes = Note::where('user_id', $user->note_user_id)
+                ->where('private', 0)
                 ->with('category')
                 ->with('stars')
                 ->whereHas('stars', function ($q) {
