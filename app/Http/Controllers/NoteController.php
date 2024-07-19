@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use App\Models\Note;
+use App\Models\Star;
 use App\Models\Share;
 use App\Models\Catagories;
 use Illuminate\Support\Str;
@@ -11,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Http\Requests\NoteRequest;
 use Illuminate\Support\Facades\DB;
+use App\Jobs\DeleteAllNotesExpired;
 use Illuminate\Support\Facades\Auth;
 use Intervention\Image\ImageManager;
 use App\Http\Resources\NotesResource;
@@ -19,9 +21,8 @@ use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\NoteShowResource;
 use Intervention\Image\Drivers\Gd\Driver;
 use App\Http\Resources\CatagoriesResource;
-use App\Http\Resources\DeleteNoteShowResource;
 use App\Http\Resources\ShareNoteShowResource;
-use App\Models\Star;
+use App\Http\Resources\DeleteNoteShowResource;
 
 class NoteController extends Controller
 {
@@ -219,10 +220,19 @@ class NoteController extends Controller
 
     public function showdelete()
     {
+
         try {
+            $deleteNote = Note::where('user_id', Auth::user()->note_user_id)
+                ->where('deleted_at', '<', Carbon::now()->subDays(7))
+                ->onlyTrashed()
+                ->get();
+
+            DeleteAllNotesExpired::dispatch($deleteNote);
+
             $notes = Note::where('user_id', Auth::user()->note_user_id)
                 ->with('category')
                 ->with('stars')
+                ->whereBetween('deleted_at', [Carbon::now()->subDays(7), Carbon::now()])
                 ->orderBy('deleted_at', 'desc')
                 ->onlyTrashed()
                 ->paginate(16);
