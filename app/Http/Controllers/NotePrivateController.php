@@ -36,7 +36,7 @@ class NotePrivateController extends Controller
                         $q->where('star', false);
                     })
                     ->orderBy('updated_at', 'desc')
-                    ->paginate(10);
+                    ->paginate(16);
 
                 return response()->json([
                     'notes' => NotesResource::collection($notes)->response()->getData(),

@@ -185,15 +185,20 @@ class NoteController extends Controller
     public function uploadImage(Request $request)
     {
         try {
-            if ($request->hasFile('file')) {
-                $path = $request->file('file')->store('uploads');
-                $manager = new ImageManager(Driver::class);
-                $resize = $manager->read($request->file('file'));
-                $resize->scale(height: 384);
-                $resize->save(public_path("storage/{$path}"));
-                $url = Storage::url($path);
+            $auth = Auth::check();
+            if ($auth) {
+                if ($request->hasFile('file')) {
+                    $path = $request->file('file')->store('uploads');
+                    $manager = new ImageManager(Driver::class);
+                    $resize = $manager->read($request->file('file'));
+                    $resize->scale(height: 384);
+                    $resize->save(public_path("storage/{$path}"));
+                    $url = Storage::url($path);
 
-                return response()->json(['success' => 1, 'file' => ['url' => $url]], Response::HTTP_OK);
+                    return response()->json(['success' => 1, 'file' => ['url' => $url]], Response::HTTP_OK);
+                }
+            } else {
+                return response()->json(['success' => 0, 'message' => 'No image uploaded'], Response::HTTP_BAD_REQUEST);
             }
         } catch (QueryException $th) {
             return response()->json(['success' => 0, 'message' => 'No image uploaded'], Response::HTTP_BAD_REQUEST);

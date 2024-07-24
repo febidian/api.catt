@@ -17,6 +17,7 @@ class SearchController extends Controller
     {
         $user = Auth::user();
         $notes = Note::where('user_id', $user->note_user_id)
+            ->where('private', "0")
             ->where('title', 'like', '%' . $title . '%')
             ->with('category')
             ->with('stars')
